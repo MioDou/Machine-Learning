@@ -1,0 +1,27 @@
+# -*- coding:utf-8 -*-
+#回归分析的KNN模型
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.datasets.samples_generator import make_regression #使用scikit-learn的make_regression生成数据集
+#make_blobs函数是为聚类产生数据集
+# 产生一个数据集和相应的标签
+# n_samples:表示数据样本点个数,默认值100
+# n_features:表示数据的维度，默认值是2
+# centers:产生数据的中心点(分类数量)
+# cluster_std：数据集的标准差，默认为1.0，数值决定数据的分散程度
+# center_box（不常用）：中心确定之后的数据边界，默认值(-10.0, 10.0)
+# shuffle（不常用） ：洗乱，默认值是True
+# random_state:随机生成器的种子
+X,Y = make_regression(n_samples=150,n_features=1,n_informative=1,noise=20,random_state=8)
+
+reg = KNeighborsRegressor(n_neighbors=5)
+reg.fit(X,Y)
+
+z = np.linspace(-3,3,200).reshape(-1,1)
+plt.scatter(X,Y,c='yellow',edgecolors='k')
+plt.plot(z,reg.predict(z),c='k',Linewidth=3)
+
+plt.title("KNN")
+plt.show()
