@@ -1,0 +1,44 @@
+# -*- coding:utf-8 -*-
+
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.datasets.samples_generator import make_regression
+
+#make_blobs函数是为聚类产生数据集
+# 产生一个数据集和相应的标签
+# n_samples:表示数据样本点个数,默认值100
+# n_features:表示数据的维度，默认值是2
+# centers:产生数据的中心点(分类数量)
+# cluster_std：数据集的标准差，默认为1.0，数值决定数据的分散程度
+# center_box（不常用）：中心确定之后的数据边界，默认值(-10.0, 10.0)
+# shuffle（不常用） ：洗乱，默认值是True
+# random_state:随机生成器的种子
+data = make_blobs(n_samples=200,n_features=2,centers=2,cluster_std=1.0,random_state=8)
+X,Y=data
+
+clf = KNeighborsRegressor()
+clf.fit(X,Y)
+
+x_min,x_max = X[:,0].min()-1,X[:,0].max()+1
+y_min,y_max = X[:,1].min()-1,X[:,1].max()+1
+xx,yy = np.meshgrid(np.arange(x_min,x_max,.02),np.arange(y_min,y_max,.02))
+z = clf.predict(np.c_[xx.ravel(),yy.ravel()])
+
+z=z.reshape(xx.shape)
+#创建伪彩色图:xx,yy---图像区域内的采样点,z---根据采样点计算出的每个点所属的类别,cmap---将相应的值映射到颜色
+plt.pcolormesh(xx,yy,z,cmap=plt.cm.Pastel1)
+plt.scatter(X[:,0],X[:,1],s=80,c=Y,cmap=plt.cm.spring,edgecolors='k')#s指描绘点的大小，cmap指点的颜色,edgecolors描绘点的边缘色彩
+#xlim,ylim指图的边界
+plt.xlim(xx.min(),xx.max())
+plt.ylim(yy.min(),yy.max())
+plt.title("KNN")
+
+#标出未分类的数据点
+plt.scatter(6,5,marker='*',c='red',s=200)
+res = clf.predict([[6,5]])
+plt.text(6.1,5,'Classification flag: '+str(res))
+plt.show()
+
