@@ -9,7 +9,7 @@ plt.rcParams['image.cmap'] = 'gray'
 #读取并绘制数据
 train_X, train_Y, test_X, test_Y = reg_utils.load_2D_dataset(is_plot=True)
 
-def model(X,Y,learning_rate=0.3,num_iterations=30000,print_cost=True,is_plot=True,lambd=0,keep_prob=1):
+def model(X, Y, learning_rate=0.3, num_iterations=30000, print_cost=True, is_plot=True, lamb=0, keep_pro=1):
     """
         X - 输入的数据，维度为(2, 要训练/测试的数量)
         Y - 标签，【0(蓝色) | 1(红色)】，维度为(1，对应的是输入的数据的标签)
@@ -17,7 +17,7 @@ def model(X,Y,learning_rate=0.3,num_iterations=30000,print_cost=True,is_plot=Tru
         num_iterations - 迭代的次数
         print_cost - 是否打印成本值，每迭代10000次打印一次，但是每1000次记录一个成本值
         is_polt - 是否绘制梯度下降的曲线图
-        lambd - 正则化的超参数，实数
+        lamb - 正则化的超参数，实数
         keep_prob - 随机删除节点的概率
     返回
         parameters - 学习后的参数
@@ -25,47 +25,47 @@ def model(X,Y,learning_rate=0.3,num_iterations=30000,print_cost=True,is_plot=Tru
     grads = {}
     costs = []
     layer_dims = [X.shape[0],20,3,1]
-    parameters = reg_utils.initialize_parameters(layer_dims)
+    parameter = reg_utils.initialize_parameters(layer_dims)
     #开始学习
     for i in range(0,num_iterations):
         #前向传播
         ##是否随机删除节点
-        if keep_prob == 1:
+        if keep_pro == 1:
             ###不随机删除节点
-            a3 , cache = reg_utils.forward_propagation(X,parameters)
-        elif keep_prob < 1:
+            a3 , cache = reg_utils.forward_propagation(X, parameter)
+        elif keep_pro < 1:
             ###随机删除节点
-            a3 , cache = forward_propagation_with_dropout(X,parameters,keep_prob)
+            a3 , cache = forward_propagation_with_dropout(X, parameter, keep_pro)
         else:
             print("keep_prob参数错误！程序退出。")
             exit()
 
         #计算成本
         ## 是否使用二范数
-        if lambd == 0:
+        if lamb == 0:
             ###不使用L2正则化
             cost = reg_utils.compute_cost(a3,Y)
         else:
             ###使用L2正则化
-            cost = compute_cost_with_regularization(a3,Y,parameters,lambd)
+            cost = compute_cost_with_regularization(a3, Y, parameter, lamb)
 
         #反向传播
         ##可以同时使用L2正则化和随机删除节点，但是本次实验不同时使用。
-        assert(lambd == 0  or keep_prob ==1)
+        assert(lamb == 0 or keep_pro == 1)
 
         ##两个参数的使用情况
-        if lambd == 0 and keep_prob == 1:
+        if lamb == 0 and keep_pro == 1:
             ### 不使用L2正则化和不使用随机删除节点
             grads = reg_utils.backward_propagation(X,Y,cache)
-        elif lambd != 0:
+        elif lamb != 0:
             ### 使用L2正则化，不使用随机删除节点
-            grads = backward_propagation_with_regularization(X, Y, cache, lambd)
-        elif keep_prob < 1:
+            grads = backward_propagation_with_regularization(X, Y, cache, lamb)
+        elif keep_pro < 1:
             ### 使用随机删除节点，不使用L2正则化
-            grads = backward_propagation_with_dropout(X, Y, cache, keep_prob)
+            grads = backward_propagation_with_dropout(X, Y, cache, keep_pro)
 
         #更新参数
-        parameters = reg_utils.update_parameters(parameters, grads, learning_rate)
+        parameter = reg_utils.update_parameters(parameter, grads, learning_rate)
 
         #记录并打印成本
         if i % 1000 == 0:
@@ -84,9 +84,9 @@ def model(X,Y,learning_rate=0.3,num_iterations=30000,print_cost=True,is_plot=Tru
         plt.show()
 
     #返回学习后的参数
-    return parameters
+    return parameter
 
-def compute_cost_with_regularization(A3,Y,parameters,lambd):
+def compute_cost_with_regularization(A3, Y, parameter, lamb):
     """
     实现公式2的L2正则化计算成本
     参数：
@@ -97,11 +97,11 @@ def compute_cost_with_regularization(A3,Y,parameters,lambd):
         cost - 使用公式2计算出来的正则化损失的值
     """
     m = Y.shape[1]
-    W1 = parameters["W1"]
-    W2 = parameters["W2"]
-    W3 = parameters["W3"]
+    W1 = parameter["W1"]
+    W2 = parameter["W2"]
+    W3 = parameter["W3"]
     cross_entropy_cost = reg_utils.compute_cost(A3,Y)
-    L2_regularization_cost = lambd * (np.sum(np.square(W1)) + np.sum(np.square(W2))  + np.sum(np.square(W3))) / (2 * m)
+    L2_regularization_cost = lamb * (np.sum(np.square(W1)) + np.sum(np.square(W2)) + np.sum(np.square(W3))) / (2 * m)
     cost = cross_entropy_cost + L2_regularization_cost
     return cost
 #当然，因为改变了成本函数，我们也必须改变向后传播的函数， 所有的梯度都必须根据这个新的成本值来计算。
@@ -140,7 +140,7 @@ def backward_propagation_with_regularization(X, Y, cache, lambd):
 
     return gradients
 
-def forward_propagation_with_dropout(X,parameters,keep_prob=0.5):
+def forward_propagation_with_dropout(X, parameter, keep_prob=0.5):
     """
     实现具有随机舍弃节点的前向传播。
     LINEAR -> RELU + DROPOUT -> LINEAR -> RELU + DROPOUT -> LINEAR -> SIGMOID.
@@ -161,12 +161,12 @@ def forward_propagation_with_dropout(X,parameters,keep_prob=0.5):
     """
     np.random.seed(1)
 
-    W1 = parameters["W1"]
-    b1 = parameters["b1"]
-    W2 = parameters["W2"]
-    b2 = parameters["b2"]
-    W3 = parameters["W3"]
-    b3 = parameters["b3"]
+    W1 = parameter["W1"]
+    b1 = parameter["b1"]
+    W2 = parameter["W2"]
+    b2 = parameter["b2"]
+    W3 = parameter["W3"]
+    b3 = parameter["b3"]
 
     #LINEAR -> RELU -> LINEAR -> RELU -> LINEAR -> SIGMOID
     Z1 = np.dot(W1,X) + b1
@@ -253,7 +253,7 @@ def backward_propagation_with_dropout(X,Y,cache,keep_prob):
     return gradients
 
 if __name__ == '__main__':
-    parameters = model(train_X, train_Y, keep_prob=0.86, learning_rate=0.3, is_plot=True)
+    parameters = model(train_X, train_Y, keep_pro=0.8, learning_rate=0.3, is_plot=True)
 
     print("训练集:")
     predictions_train = reg_utils.predict(train_X, train_Y, parameters)
@@ -262,6 +262,6 @@ if __name__ == '__main__':
 
     plt.title("Model with L2-regularization")
     axes = plt.gca()
-    axes.set_xlim([-0.75, 0.40])
-    axes.set_ylim([-0.75, 0.65])
+    axes.set_xlim([-0.70, 0.40])
+    axes.set_ylim([-0.70, 0.60])
     reg_utils.plot_decision_boundary(lambda x: reg_utils.predict_dec(parameters, x.T), train_X, train_Y)
