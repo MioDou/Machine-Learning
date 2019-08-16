@@ -9,4 +9,4 @@
  * SVM 支持向量机 
  * XGBoost 极端梯度提升
  * LVQ 学习矢量量化
- * 遗传算法
+ * Genetic 遗传算法
