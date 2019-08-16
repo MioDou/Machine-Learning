@@ -1,6 +1,6 @@
  Python：Algorithm Learning 
  ------
- * Back Propagation 神经网络算法
+ * Back Propagation 神经网络反向传播
  * K-最近邻算法
  * K-均值算法
  * Logistic 逻辑回归
