@@ -1,6 +1,6 @@
  Python Machine learning
  ------
- #* BP神经网络
+ * BP神经网络
  
 
  
