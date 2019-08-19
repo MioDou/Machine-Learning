@@ -11,3 +11,7 @@
  * XGBoost 极端梯度提升
  * LVQ 学习矢量量化
  * Genetic 遗传算法
+ * Gradient Descent 梯度下降算法
+  * Batch 批量梯度下降
+  * Mini-Batch 小批量梯度下降
+  * Stochastic 随机梯度下降
