@@ -5,11 +5,9 @@ from sklearn.datasets import make_moons
 from sklearn.datasets.samples_generator import make_blobs
 import matplotlib.pyplot as plt
 
-#有一定概率结果会出错，尚未解决
-#有一定概率结果会出错，尚未解决
-#有一定概率结果会出错，尚未解决
-#有一定概率结果会出错，尚未解决
-#有一定概率结果会出错，尚未解决
+#结果有一定概率结果会出错，不是太熟悉该算法，所以未解决
+
+
 def dist(x1, x2):
     d = np.linalg.norm(x1 - x2)
     return d
