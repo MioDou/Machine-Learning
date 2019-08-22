@@ -81,12 +81,12 @@ def backward_propagation(parameter, cache, x, y):
     A1=cache['A1']
     A2=cache['A2']
 
-    dZ2= A2 - y              #n_y,m
-    dW2= np.dot(dZ2,A1.T) / M               #n_y,n_h
-    db2= np.sum(dZ2,axis=1,keepdims=True) / M              #n_y,1
-    dZ1=np.multiply(np.dot(W2.T,dZ2),1 - np.power(A1, 2))                     #n_h,m
-    dW1= np.dot(dZ1, x.T) / M                               #n_h,n_x
-    db1= np.sum(dZ1,axis=1,keepdims=True) / M              #n_h,1
+    dZ2= A2 - y              
+    dW2= np.dot(dZ2,A1.T) / M               
+    db2= np.sum(dZ2,axis=1,keepdims=True) / M             
+    dZ1=np.multiply(np.dot(W2.T,dZ2),1 - np.power(A1, 2))                   
+    dW1= np.dot(dZ1, x.T) / M                              
+    db1= np.sum(dZ1,axis=1,keepdims=True) / M              
 
     grads = {"dW1": dW1,
              "db1": db1,
