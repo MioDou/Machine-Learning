@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import sklearn
 import sklearn.datasets
 import sklearn.linear_model
+# 指明函数来源
 from Test_3.planner_utils import plot_decision_boundary,load_planar_dataset,load_extra_datasets
 from Test_3.testCase import predict_test_case,layer_sizes_test_case,initialize_parameters_test_case,nn_model_test_case,forward_propagation_test_case,backward_propagation_test_case,compute_cost_test_case,update_parameters_test_case
 
@@ -148,7 +149,8 @@ def predict(parameter, x):
 
 
 ###########################################
-
+main函数
+###########################################
 clf = sklearn.linear_model.LogisticRegressionCV()
 clf.fit(X.T, Y.T.ravel())                #将多维数组降位一维
 plot_decision_boundary(lambda x: clf.predict(x), X, Y)
