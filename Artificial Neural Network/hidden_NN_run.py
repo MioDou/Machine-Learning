@@ -149,7 +149,7 @@ def predict(parameter, x):
 
 
 ###########################################
-"""main函数"""
+"""main"""
 ###########################################
 clf = sklearn.linear_model.LogisticRegressionCV()
 clf.fit(X.T, Y.T.ravel())                #将多维数组降位一维
