@@ -1,18 +1,20 @@
 # -*- coding:utf-8 -*-
-
+"""
+create 2019.8.XX
+"""
 import numpy as np
 
-def TanH(input_sum):
-    return np.tanh(input_sum)
-def TanH_derivative(input_sum):
-    return 1.0 - np.tanh(input_sum) * np.tanh(input_sum)
-def sigmoid(input_sum):
-    return 1/(1+np.exp(-input_sum))
-def sigmoid_derivative(input_sum):
-    return input_sum*(1-input_sum)
+def TanH(X):
+    return np.tanh(X)
+def TanH_derivative(X):
+    return 1.0 - np.tanh(X) * np.tanh(X)
+def sigmoid(X):
+    return 1/(1+np.exp(-X))
+def sigmoid_derivative(X):
+    return X*(1-X)
 
 class NeuralNetwork:
-    def __init__(self, layers, activation='Sigmoid'):
+    def __init__(self, layers, activation):
 
         if activation == 'Sigmoid':
             self.activation = sigmoid
@@ -49,19 +51,19 @@ class NeuralNetwork:
                 delta = np.atleast_2d(deltas[I])
                 self.weights[I] += learning_rate * layer.T.dot(delta)
 
-    def predict(self, input_sum):
-        input_sum = np.array(input_sum)
-        temp = np.ones(input_sum.shape[0] + 1)
-        temp[0:-1] = input_sum
+    def predict(self, input):
+        input = np.array(input)
+        temp = np.ones(input.shape[0] + 1)
+        temp[0:-1] = input
         a = temp
         for l in range(0, len(self.weights)):
             a = self.activation(np.dot(a, self.weights[l]))
         return a
 
 if __name__ == "__main__":
-    nn = NeuralNetwork([2, 2, 1], 'TanH')
+    nn = NeuralNetwork([2, 4, 1], 'TanH')
     x = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     Y = np.array([0, 1, 1, 0])
     nn.fit(x, Y)
-    for i in [[0, 0], [0, 1], [1, 0], [1, 1]]:
+    for i in [[1, 0], [0, 1], [0, 0], [1, 1]]:
         print(i, nn.predict(i))
