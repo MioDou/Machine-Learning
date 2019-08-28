@@ -23,7 +23,7 @@
  * LVQ 学习矢量量化
  * Genetic 遗传算法
  
- * 梯度下降算 Gradient Descent 
+ * 梯度下降 Gradient Descent 
    * Batch 批量梯度下降
    * Mini-Batch 小批量梯度下降
    * Stochastic 随机梯度下降
