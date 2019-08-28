@@ -1,5 +1,5 @@
 # coding:utf-8
-from PIL._imaging import font
+from PIL import ImageFont
 import sklearn.linear_model
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,6 +30,7 @@ def sigmoid_back_propagation(derror_wrt_output, input_sum):
 def ReLU(input_sum):
     output = np.maximum(0, input_sum)
     return output, input_sum
+
 def ReLU_back_propagation(derror_wrt_output, input_sum):
     """
         函数：
@@ -97,10 +98,69 @@ def activated_back_propagation(activation_choose, derror_wrt_output, output):
     return sigmoid_back_propagation(derror_wrt_output, output)
 
 
+def layer_activation_forward(x, w, b, activation_choose):
+    """
+    函数：
+        网络层的正向传播
+    输入：
+        x: 当前网络层输入（即上一层的输出），一般是所有训练数据，即输入矩阵
+        w: 当前网络层的权值矩阵
+        b: 当前网络层的偏置矩阵
+        activation_choose: 选择激活函数 "sigmoid", "relu", "tanh"
+    返回:
+        output: 网络层的激活输出
+        cache: 缓存该网络层的信息，供后续使用： (x, w, b, input_sum) -> cache
+ """
+    # 对输入求加权和
+    input_sum = np.dot(w, x) + b
+    # 对输入加权和进行激活输出
+    output, _ = activated(activation_choose, input_sum)
+    return output, (x, w, b, input_sum)
+
+
+def show_caches(caches):
+    """显示网络层的缓存参数信息"""
+    num = 1
+    for cache in caches:
+        print("%dtd Layer" % num)
+        print(" input: %s" % cache[0])
+        print(" w: %s" % cache[1])
+        print(" b: %s" % cache[2])
+        print(" input_sum: %s" % cache[3])
+        print("----------")
+        num += 1
+
+
+def layer_activation_backward(derror_wrt_output, cache, activation_choose):
+    """
+        函数:
+            网络层的反向传播
+        输入:
+            derror_wrt_output: 误差关于输出的偏导
+            cache: 网络层的缓存信息 (x, w, b, input_sum)
+            activation_choose: 选择激活函数 "sigmoid", "relu", "tanh"
+        返回: 梯度信息，即
+            derror_wrt_output_prev: 反向传播到上一层的误差关于输出的梯度
+            derror_wrt_dw: 误差关于权值的梯度
+            derror_wrt_db: 误差关于偏置的梯度
+    """
+    input, w, b, input_sum = cache
+    output_prev = input     # 上一层的输出 = 当前层的输入; 注意是'输入'不是输入的加权和（input_sum）
+    m = output_prev.shape[1]      # m是输入的样本数量，我们要取均值，所以下面的求值要除以m
+    #  误差关于权值w的偏导数
+    derror_wrt_dinput = activated_back_propagation(activation_choose, derror_wrt_output, input_sum)
+    derror_wrt_dw = np.dot(derror_wrt_dinput, output_prev.T) / m
+    # 误差关于偏置b的偏导数
+    derror_wrt_db = np.sum(derror_wrt_dinput, axis=1, keepdims=True)/m
+    # 为反向传播到上一层提供误差传递
+    derror_wrt_output_prev = np.dot(w.T, derror_wrt_dinput)
+    return derror_wrt_output_prev, derror_wrt_dw, derror_wrt_db
+
+
 class NeuralNetwork:#创建神经网络
-    def __init__(self, layers_strcuture, print_cost = False):
-        self.layers_strcuture = layers_strcuture #神经网络的结构
-        self.layers_num = len(layers_strcuture)
+    def __init__(self, layers_structure, print_cost = False):
+        self.layers_structure = layers_structure #神经网络的结构
+        self.layers_num = len(layers_structure)
         # 除掉输入层的网络层数，因为其他层才是真正的神经元层
         self.param_layers_num = self.layers_num - 1
         self.learning_rate = 0.0618  #学习率
@@ -111,7 +171,8 @@ class NeuralNetwork:#创建神经网络
         self.b = dict()
         self.costs = []
         self.print_cost = print_cost
-        self.init_w_and_b()
+        self.init()
+
     def set_learning_rate(self, learning_rate):
         """设置学习率"""
         self.learning_rate = learning_rate
@@ -123,13 +184,12 @@ class NeuralNetwork:#创建神经网络
         self.x = input
         self.y = expected_output
 
-
-    def init_w_and_b(self):
+    def init(self):
         """
         函数:
             初始化神经网络所有参数
         输入:
-            layers_strcuture: 神经网络的结构，例如[2,4,3,1]，4层结构:
+            layers_structure: 神经网络的结构，例如[2,4,3,1]，4层结构:
                 第0层输入层接收2个数据，第1层隐藏层4个神经元，第2层隐藏层3个神经元，第3层输出层1个神经元
         返回: 神经网络各层参数的索引表，用来定位权值 wᵢ  和偏置 bᵢ，i为网络层编号
         """
@@ -144,29 +204,9 @@ class NeuralNetwork:#创建神经网络
         # 当前层的偏置一般给0就行，偏置是个1xnᵢ的矩阵，nᵢ为第i层的节点个数，例如第1层为4个节点，那么：
         #    b1 = array([ 0.,  0.,  0.,  0.])
         for l in range(1, self.layers_num):
-            self.w["w" + str(l)] = np.random.randn(self.layers_strcuture[l], self.layers_strcuture[l-1])/np.sqrt(self.layers_strcuture[l-1])
-            self.b["b" + str(l)] = np.zeros((self.layers_strcuture[l], 1))
+            self.w["w" + str(l)] = np.random.randn(self.layers_structure[l], self.layers_structure[l - 1]) / np.sqrt(self.layers_structure[l - 1])
+            self.b["b" + str(l)] = np.zeros((self.layers_structure[l], 1))
         return self.w, self.b
-
-
-    def layer_activation_forward(self, x, w, b, activation_choose):
-        """
-        函数：
-            网络层的正向传播
-        输入：
-            x: 当前网络层输入（即上一层的输出），一般是所有训练数据，即输入矩阵
-            w: 当前网络层的权值矩阵
-            b: 当前网络层的偏置矩阵
-            activation_choose: 选择激活函数 "sigmoid", "relu", "tanh"
-        返回:
-            output: 网络层的激活输出
-            cache: 缓存该网络层的信息，供后续使用： (x, w, b, input_sum) -> cache
-     """
-        # 对输入求加权和
-        input_sum = np.dot(w, x) + b
-        # 对输入加权和进行激活输出
-        output, _ = activated(activation_choose, input_sum)
-        return output, (x, w, b, input_sum)
 
     def forward_propagation(self, x):
         """
@@ -186,22 +226,11 @@ class NeuralNetwork:#创建神经网络
         for l in range(1, L):
             # 当前网络层的输入来自前一层的输出
             input_cur = output_prev
-            output_prev, cache = self.layer_activation_forward(input_cur, self.w["w"+ str(l)], self.b["b" + str(l)], "tanh")
+            output_prev, cache = layer_activation_forward(input_cur, self.w["w"+ str(l)], self.b["b" + str(l)], "tanh")
             caches.append(cache)
-        output, cache = self.layer_activation_forward(output_prev, self.w["w" + str(L)], self.b["b" + str(L)], "sigmoid")
+        output, cache = layer_activation_forward(output_prev, self.w["w" + str(L)], self.b["b" + str(L)], "sigmoid")
         caches.append(cache)
         return output, caches
-    def show_caches(self, caches):
-        """显示网络层的缓存参数信息"""
-        i = 1
-        for cache in caches:
-            print("%dtd Layer" % i)
-            print(" input: %s" % cache[0])
-            print(" w: %s" % cache[1])
-            print(" b: %s" % cache[2])
-            print(" input_sum: %s" % cache[3])
-            print("----------")
-            i += 1
 
     def compute_error(self, output):
         """
@@ -220,30 +249,6 @@ class NeuralNetwork:#创建神经网络
         error = np.squeeze(error)
         return error
 
-    def layer_activation_backward(self, derror_wrt_output, cache, activation_choose):
-        """
-            函数:
-                网络层的反向传播
-            输入:
-                derror_wrt_output: 误差关于输出的偏导
-                cache: 网络层的缓存信息 (x, w, b, input_sum)
-                activation_choose: 选择激活函数 "sigmoid", "relu", "tanh"
-            返回: 梯度信息，即
-                derror_wrt_output_prev: 反向传播到上一层的误差关于输出的梯度
-                derror_wrt_dw: 误差关于权值的梯度
-                derror_wrt_db: 误差关于偏置的梯度
-        """
-        input, w, b, input_sum = cache
-        output_prev = input     # 上一层的输出 = 当前层的输入; 注意是'输入'不是输入的加权和（input_sum）
-        m = output_prev.shape[1]      # m是输入的样本数量，我们要取均值，所以下面的求值要除以m
-        #  误差关于权值w的偏导数
-        derror_wrt_dinput = activated_back_propagation(activation_choose, derror_wrt_output, input_sum)
-        derror_wrt_dw = np.dot(derror_wrt_dinput, output_prev.T) / m
-        # 误差关于偏置b的偏导数
-        derror_wrt_db = np.sum(derror_wrt_dinput, axis=1, keepdims=True)/m
-        # 为反向传播到上一层提供误差传递
-        derror_wrt_output_prev = np.dot(w.T, derror_wrt_dinput)
-        return derror_wrt_output_prev, derror_wrt_dw, derror_wrt_db
     def back_propagation(self, output, caches):
         """
         函数:
@@ -265,12 +270,12 @@ class NeuralNetwork:#创建神经网络
         # 反向传播：输出层 -> 隐藏层，得到梯度
         current_cache = caches[L - 1] # 取最后一层,即输出层的参数信息
         grads["derror_wrt_output" + str(L)], grads["derror_wrt_dw" + str(L)], grads["derror_wrt_db" + str(L)] = \
-            self.layer_activation_backward(derror_wrt_output, current_cache, "sigmoid")
+            layer_activation_backward(derror_wrt_output, current_cache, "sigmoid")
         # 反向传播：隐藏层 -> 隐藏层，得到梯度
         for l in reversed(range(L - 1)):
             current_cache = caches[l]
             derror_wrt_output_prev_temp, derror_wrt_dw_temp, derror_wrt_db_temp = \
-                self.layer_activation_backward(grads["derror_wrt_output" + str(l + 2)], current_cache, "tanh")
+                layer_activation_backward(grads["derror_wrt_output" + str(l + 2)], current_cache, "tanh")
             grads["derror_wrt_output" + str(l + 1)] = derror_wrt_output_prev_temp
             grads["derror_wrt_dw" + str(l + 1)] = derror_wrt_dw_temp
             grads["derror_wrt_db" + str(l + 1)] = derror_wrt_db_temp
@@ -289,7 +294,7 @@ class NeuralNetwork:#创建神经网络
             self.b["b" + str(l + 1)] = self.b["b" + str(l + 1)] - self.learning_rate * grads["derror_wrt_db" + str(l + 1)]
 
 
-    def training_modle(self):
+    def training_model(self):
         """训练神经网络模型"""
         np.random.seed(5)
         for i in range(0, self.num_iterations):
@@ -303,24 +308,24 @@ class NeuralNetwork:#创建神经网络
             self.update_w_and_b(grads)
             # 当次迭代结束，打印误差信息
             if self.print_cost and i % 1000 == 0:
-                print ("Cost after iteration %i: %f" % (i, cost))
+                print ("Cost after iteration {}:{:.9f}".format(i,cost))
             if self.print_cost and i % 1000 == 0:
                 self.costs.append(cost)
         # 模型训练完后显示误差曲线
         if False:
             plt.plot(np.squeeze(self.costs))
-            plt.ylabel(u'神经网络误差', fontproperties = font)
-            plt.xlabel(u'迭代次数 (*100)', fontproperties = font)
-            plt.title(u"学习率 =" + str(self.learning_rate), fontproperties = font)
+            plt.ylabel(u'神经网络误差', fontproperties = ImageFont)
+            plt.xlabel(u'迭代次数 (*100)', fontproperties = ImageFont)
+            plt.title(u"学习率 =" + str(self.learning_rate), fontproperties = ImageFont)
             plt.show()
         return self.w, self.b
-    def predict_by_modle(self, x):
+    def predict_by_model(self, x):
         """使用训练好的模型（即最后求得w，b参数）来决策输入的样本的结果"""
         output, _ = self.forward_propagation(x.T)
         output = output.T
         result = output / np.sum(output, axis=1, keepdims=True)
         return np.argmax(result, axis=1)
-def plot_decision_boundary(xy, colors, pred_func):
+def plot_decision_boundary(xy, color, predict_func):
     # xy是坐标点的集合，把集合的范围算出来
     # 加减0.5相当于扩大画布的范围，不然画出来的图坐标点会落在图的边缘，逼死强迫症患者
     x_min, x_max = xy[:, 0].min() - 0.5, xy[:, 0].max() + 0.5
@@ -329,12 +334,12 @@ def plot_decision_boundary(xy, colors, pred_func):
     h = .01
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
     # 把网格点集合作为输入到模型，也就是预测这个采样点是什么颜色的点，从而得到一个决策面
-    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = predict_func(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
     # 利用等高线，把预测的结果画出来，效果上就是画出红蓝点的分界线
     plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
     # 训练用的红蓝点点也画出来
-    plt.scatter(xy[:, 0], xy[:, 1], c=colors, marker='o', cmap=plt.cm.Spectral, edgecolors='black')
+    plt.scatter(xy[:, 0], xy[:, 1], c=color, marker='o', cmap=plt.cm.Spectral, edgecolors='black')
 
 
 
@@ -342,7 +347,7 @@ def plot_decision_boundary(xy, colors, pred_func):
 if __name__ == "__main__":
     plt.figure(figsize=(32, 32))
     # 用sklearn的数据样本集，产生2种颜色的坐标点，noise是噪声系数，噪声越大，2种颜色的点分布越凌乱
-    xy, colors = sklearn.datasets.make_moons(150, noise=1.0)
+    XY, colors = sklearn.datasets.make_moons(150, noise=1.0)
     # 因为点的颜色是1bit，我们设计一个神经网络，输出层有2个神经元。
     # 标定输出[1,0]为红色点，输出[0,1]为蓝色点
     expect_output = []
@@ -358,9 +363,9 @@ if __name__ == "__main__":
         plt.subplot(3, 3, i + 1)
         nn = NeuralNetwork([2, hidden_layer_neuron_num, 2], True)
         # 输出和输入层都是2个节点，所以输入和输出的数据集合都要是 nx2的矩阵
-        nn.set_xy(xy.T, expect_output)
+        nn.set_xy(XY.T, expect_output)
         nn.set_num_iterations(50000)
         nn.set_learning_rate(0.1)
-        w, b = nn.training_modle()
-        plot_decision_boundary(xy, colors, nn.predict_by_modle)
+        w, b = nn.training_model()
+        plot_decision_boundary(XY, colors, nn.predict_by_model)
     plt.show()
