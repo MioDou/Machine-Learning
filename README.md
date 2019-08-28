@@ -5,15 +5,12 @@
    * Convolutional Neural Network 卷积神经网络（CNN）
    * Recurrent Neural Network 循环神经网络（RNN）
    
- * K-NearestNeighbor K-最近邻算法
- * KMeans K均值算法
- 
  * 线性分类器 Linear Classifier
    * Linear Regression 线性回归
    * Logistic Regression 逻辑回归
    * SVM 支持向量机
    
- * Decision Tree 决策树
+ * 决策树 Decision Tree
    * Random Forest 随机森林 
    * Classification and Regression Tree 分类和回归树（CARF）
    
@@ -26,7 +23,11 @@
  * LVQ 学习矢量量化
  * Genetic 遗传算法
  
- * Gradient Descent 梯度下降算法
+ * 梯度下降算法 Gradient Descent 
    * Batch 批量梯度下降
    * Mini-Batch 小批量梯度下降
    * Stochastic 随机梯度下降
+   
+ * 聚类分析 Cluster analysis
+   * K-NearestNeighbor K-最近邻算法
+   * KMeans K均值算法
